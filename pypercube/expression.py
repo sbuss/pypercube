@@ -3,6 +3,127 @@ import types
 from pypercube import filters
 
 
+class CompoundMetricExpression(object):
+    """CompoundMetricExpressions have two MetricExpressions and an operator.
+
+    Used to do calculated metrics like sum(request(elapsed_ms)) / sum(request)
+    """
+    def __init__(self, metric1, operator=None, metric2=None):
+        """Create a CompoundMetricExpression.
+
+        :param metric1: The metric on the left side of the operator
+        :type metric1: `MetricExpression` or `CompoundMetricExpression`
+        :param operator: The operator to use on metric1 and metric2
+        :type operator: `str`
+        :param metric2: The metric on the right side of the operator
+        :type metric2: `MetricExpression` or `CompoundMetricExpression`
+
+        Note that CompoundMetricExpression does respect standard order of
+        operations (*/+-).
+
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> print(m + m)
+        (sum(request) + sum(request))
+        >>> print(m + m - m)
+        ((sum(request) + sum(request)) - sum(request))
+        >>> print(m + m * 2)
+        (sum(request) + (sum(request) * 2))
+        >>> print(m + m * m / m)
+        (sum(request) + ((sum(request) * sum(request)) / sum(request)))
+        """
+        if not operator and metric2:
+            raise ValueError("You must have an operator if metric2 is"
+                "defined.")
+        self.metric1 = metric1
+        self.operator = operator
+        self.metric2 = metric2
+
+    def __str__(self):
+        response = "%s" % self.metric1
+        if self.operator and self.metric2:
+            response = "(" + response
+            response += " {op} {right})".format(
+                    op=self.operator,
+                    right=self.metric2)
+        return response
+
+    def __add__(self, right):
+        return CompoundMetricExpression(self, "+", right)
+
+    def __sub__(self, right):
+        return CompoundMetricExpression(self, "-", right)
+
+    def __mul__(self, right):
+        return CompoundMetricExpression(self, "*", right)
+
+    def __div__(self, right):
+        return CompoundMetricExpression(self, "/", right)
+
+    def __truediv__(self, right):
+        return self.__div__(right)
+
+
+class MetricExpression(object):
+    """A single MetricExpression."""
+    def __init__(self, metric_type, event_expression):
+        """Calculate a Cube Metric.
+
+        :param metric_type: The type of the metric, like 'sum' or 'min'
+        :type metric_type: `str`
+        :param event_expression: The EventExpression over which to calculate
+        :type event_expression: `EventExpression`
+
+        Note that the EventExpressions for Cube metrics may only have *one*
+        event_property.
+
+        >>> e = EventExpression('request')
+        >>> print(MetricExpression('sum', e))
+        sum(request)
+        >>> e = EventExpression('request', 'elapsed_ms')
+        >>> print(MetricExpression('sum', e))
+        sum(request(elapsed_ms))
+        >>> err = EventExpression('request', ['elapsed_ms', 'path'])
+        >>> MetricExpression('sum', err)
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in ?
+        ValueError: Events for Metrics may only select a single event property
+        >>> e = EventExpression('request', 'elapsed_ms').eq(
+        ...     'path', '/')
+        >>> print(MetricExpression('sum', e))
+        sum(request(elapsed_ms).eq(path, "/"))
+        >>> e = EventExpression('request', 'elapsed_ms').eq(
+        ...     'path', '/').gt('elapsed_ms', 500)
+        >>> print(MetricExpression('sum', e))
+        sum(request(elapsed_ms).eq(path, "/").gt(elapsed_ms, 500))
+        """
+        if len(event_expression.event_properties) > 1:
+            raise ValueError("Events for Metrics may only select a single "
+                    "event property")
+        self.metric_type = metric_type
+        self.event_expression = event_expression
+
+    def __str__(self):
+        return "{type}({value})".format(
+                type=self.metric_type,
+                value=self.event_expression)
+
+    def __add__(self, right):
+        return CompoundMetricExpression(self) + right
+
+    def __sub__(self, right):
+        return CompoundMetricExpression(self) - right
+
+    def __mul__(self, right):
+        return CompoundMetricExpression(self) * right
+
+    def __div__(self, right):
+        return CompoundMetricExpression(self).__div__(right)
+
+    def __truediv__(self, right):
+        return CompoundMetricExpression(self).__truediv__(right)
+
+
 class EventExpression(object):
     def __init__(self, event_type, event_properties=None):
         """Create an Event expression.
