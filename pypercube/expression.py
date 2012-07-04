@@ -43,7 +43,7 @@ class EventExpression(object):
         >>> e2 == e3
         False
         """
-        c = EventExpression(self.event_type, self.event_properties)
+        c = EventExpression(self.event_type, self.event_properties[:])
         c.filters = self.filters[:]
         return c
 
