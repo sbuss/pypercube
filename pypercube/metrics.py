@@ -2,6 +2,8 @@ import types
 import json
 from dateutil import parser as date_parser
 
+from pypercube.cube import Expression
+
 
 class Metric(object):
     TIME_FIELD_NAME = "time"
@@ -60,14 +62,12 @@ class InvalidMetricError(Exception):
     pass
 
 
-class MetricExpression(object):
+class MetricExpression(Expression):
     def __init__(self, expression):
-        self.expression = "%s" % expression
-        self.response_type = Metric
-        self.path = "metric/get"
-
-    def get_expression(self):
-        return self.expression
+        super(MetricExpression, self).__init__(
+                expression="%s" % expression,
+                response_type=Metric,
+                path="metric/get")
 
     def __str__(self):
         return self.expression

@@ -3,6 +3,8 @@ import types
 
 from dateutil import parser as date_parser
 
+from pypercube.cube import Expression
+
 
 class Event(object):
     """A Cube Event has a timestamp, a type, and a data dictionary."""
@@ -67,8 +69,7 @@ class Event(object):
         return self.to_json()
 
 
-### GET Events ###
-class EventExpression(object):
+class EventExpression(Expression):
     def __init__(self, event_type, event_property=None, filters=None):
         """
         :param event_type: The type of the event to query for.
@@ -79,8 +80,10 @@ class EventExpression(object):
         self.event_type = event_type
         self.event_property = event_property
         self.filters = filters
-        self.response_type = Event
-        self.path = "event/get"
+        super(EventExpression, self).__init__(
+                expression=self.get_expression(),
+                response_type=Event,
+                path="event/get")
 
     def get_expression(self):
         event_type = self.event_type
