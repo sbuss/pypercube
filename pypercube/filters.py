@@ -74,7 +74,8 @@ class RE(Filter):
 class IN(Filter):
     """An "in array" filter"""
     def __init__(self, property_name, value):
-        return super(IN, self).__init__("in", property_name, value)
+        return super(IN, self).__init__("in", property_name,
+                [x for x in value])
 
 
 class StartsWith(RE):
