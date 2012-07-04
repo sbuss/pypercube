@@ -79,6 +79,8 @@ class EventExpression(object):
         self.event_type = event_type
         self.event_property = event_property
         self.filters = filters
+        self.response_type = Event
+        self.path = "event/get"
 
     def get_expression(self):
         event_type = self.event_type

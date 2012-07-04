@@ -3,7 +3,7 @@ import json
 from dateutil import parser as date_parser
 
 
-class MetricResponse(object):
+class Metric(object):
     TIME_FIELD_NAME = "time"
     VALUE_FIELD_NAME = "value"
 
@@ -63,6 +63,11 @@ class InvalidMetricError(Exception):
 class MetricExpression(object):
     def __init__(self, expression):
         self.expression = "%s" % expression
+        self.response_type = Metric
+        self.path = "metric/get"
+
+    def get_expression(self):
+        return self.expression
 
     def __str__(self):
         return self.expression
@@ -89,11 +94,13 @@ class MetricExpression(object):
         return self.__div__(right)
 
 
-# TODO: MetricOperators compose metrics
-class Metric(object):
-    """A metric."""
+class MetricOperation(MetricExpression):
+    """A metric.
+
+    When you add/subtract/multiply/divide two MetricOperations a new
+    MetricExpression is returned."""
     def __init__(self, type, event):
-        """A Metric.
+        """A MetricOperation.
 
         :param type: The type of metric, eg 'sum' or 'min'
         :type type: str
@@ -103,6 +110,7 @@ class Metric(object):
         """
         self.type = type
         self.event = event
+        super(MetricOperation, self).__init__(self.apply())
 
     def apply(self):
         return MetricExpression("{type}({value})".format(
@@ -110,7 +118,7 @@ class Metric(object):
                 value=self.event))
 
     def __str__(self):
-        return self.apply()
+        return "%s" % self.apply()
 
     def __add__(self, right):
         return MetricExpression(self) + right
@@ -128,31 +136,31 @@ class Metric(object):
         return MetricExpression(self).__truediv__(right)
 
 
-class Sum(Metric):
-    """A "Summation" metric."""
+class Sum(MetricOperation):
+    """A "sum" metric."""
     def __init__(self, event):
         super(Sum, self).__init__("sum", event)
 
 
-class Min(Metric):
-    """A "Summation" metric."""
+class Min(MetricOperation):
+    """A "min" metric."""
     def __init__(self, event):
         super(Min, self).__init__("min", event)
 
 
-class Max(Metric):
-    """A "Summation" metric."""
+class Max(MetricOperation):
+    """A "max" metric."""
     def __init__(self, event):
         super(Max, self).__init__("max", event)
 
 
-class Median(Metric):
-    """A "Summation" metric."""
+class Median(MetricOperation):
+    """A "median" metric."""
     def __init__(self, event):
         super(Median, self).__init__("median", event)
 
 
-class Distinct(Metric):
-    """A "Summation" metric."""
+class Distinct(MetricOperation):
+    """A "distinct" metric."""
     def __init__(self, event):
         super(Distinct, self).__init__("distinct", event)
