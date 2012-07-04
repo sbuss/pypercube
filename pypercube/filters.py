@@ -23,6 +23,11 @@ class Filter(object):
                 property=self.property_name,
                 value=json.dumps(self.value))
 
+    def __eq__(self, other):
+        return self.type == other.type and \
+                self.property_name == other.property_name and \
+                self.value == other.value
+
 
 class EQ(Filter):
     """An "equals" filter"""
