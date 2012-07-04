@@ -17,6 +17,10 @@ class EventExpression(object):
         request
         >>> print(request_time.event_properties)
         ['elapsed_ms']
+        >>> print(request_time.eq('path', '/').gt('elapsed_ms', 100).lt(
+        ...     'elapsed_ms', 1000))  # doctest:+NORMALIZE_WHITESPACE
+        request(elapsed_ms).eq(path, "/").gt(elapsed_ms, 100).lt(elapsed_ms,
+                1000)
         """
         self.event_type = event_type
         if event_properties:
