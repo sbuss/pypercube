@@ -1,7 +1,52 @@
 import requests
 
+from pypercube.event import Event
+from pypercube.metric import Metric
+
 
 class Cube(object):
+    def __init__(self, hostname, port=1081, api_version="1.0"):
+        self.hostname = hostname
+        self.port = port
+        self.api_version = api_version
+
+    ### Utility methods ###
+    def get_base_url(self):
+        """
+        >>> c = Cube('cube.mydomain.com')
+        >>> print(c.get_base_url())
+        http://cube.mydomain.com:1081/1.0
+        """
+        return "http://{hostname}:{port}/{api}".format(
+                hostname=self.hostname,
+                port=self.port,
+                api=self.api_version)
+
+    ### Data access methods
+    def _handle_response(self, response, obj):
+        if response.ok and response.json:
+            return [obj.from_json(record) for record in response.json]
+        elif not response.ok:
+            raise InvalidQueryError({
+                "status": response.status_code,
+                "url": response.url})
+        return response.content
+
+    def get_event(self, event_expression, start=None, stop=None, limit=None):
+        query = Query(self.get_base_url(), "event/get", start, stop, None,
+                limit)
+        r = query.get(event_expression)
+        return self._handle_response(r, Event)
+
+    def get_metric(self, metric_expression, start=None, stop=None, step=None,
+            limit=None):
+        query = Query(self.get_base_url(), "metric/get", start, stop, step,
+                limit)
+        r = query.get(metric_expression)
+        return self._handle_response(r, Metric)
+
+
+class Query(object):
     STEP_10_sec = long(1e4)
     STEP_1_min = long(6e4)
     STEP_5_min = long(3e5)
@@ -15,17 +60,11 @@ class Cube(object):
             (STEP_1_hour, "1 hour"),
             (STEP_1_day, "1 day"))
 
-    def __init__(self, hostname, port=1081, api_version="1.0"):
-        self.hostname = hostname
-        self.port = port
-        self.api_version = api_version
-
-    ### Utility methods ###
-    def get_base_url(self):
-        return "http://{hostname}:{port}/{api}".format(
-                hostname=self.hostname,
-                port=self.port,
-                api=self.api_version)
+    def __init__(self, base_url, path, start=None, stop=None, step=None,
+            limit=None):
+        self.base_url = base_url
+        self.path = path
+        self.params = Query._build_params(start, stop, step, limit)
 
     @classmethod
     def _format_time(cls, t):
@@ -34,8 +73,7 @@ class Cube(object):
         return t
 
     @classmethod
-    def _build_params(cls, start=None, stop=None, step=None, limit=None,
-            expression=None):
+    def _build_params(cls, start=None, stop=None, step=None, limit=None):
         params = dict()
         if start:
             params['start'] = cls._format_time(start)
@@ -51,37 +89,16 @@ class Cube(object):
                     cls=cls.__name__))
         if limit:
             params['limit'] = limit
-        if expression:
-            params['expression'] = expression
         return params
 
-    ### Data access methods
-    def get(self, expression, start=None, stop=None, step=None, limit=None):
-        params = self._build_params(start, stop, step, limit, expression)
+    def get(self, expression):
+        params = self.params.copy()
+        params.update(expression=expression)
         path = "{base_url}/{path}".format(
-                base_url=self.get_base_url(),
-                path=expression.path,
+                base_url=self.base_url,
+                path=self.path,
                 )
-        r = requests.get(path, params=params)
-        print(r.url)
-        if r.ok and r.json:
-            return [expression.response_type.from_json(record) for \
-                    record in r.json]
-        elif not r.ok:
-            raise InvalidQueryError({
-                "status": r.status_code,
-                "url": r.url})
-        return r.content
-
-
-class Expression(object):
-    def __init__(self, expression, response_type, path):
-        self.expression = expression
-        self.response_type = response_type
-        self.path = path
-
-    def __str__(self):
-        return "%s" % self.expression
+        return requests.get(path, params=params)
 
 
 class InvalidQueryError(Exception):

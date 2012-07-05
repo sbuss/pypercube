@@ -23,6 +23,11 @@ class Filter(object):
                 property=self.property_name,
                 value=json.dumps(self.value))
 
+    def __eq__(self, other):
+        return self.type == other.type and \
+                self.property_name == other.property_name and \
+                self.value == other.value
+
 
 class EQ(Filter):
     """An "equals" filter"""
@@ -69,7 +74,8 @@ class RE(Filter):
 class IN(Filter):
     """An "in array" filter"""
     def __init__(self, property_name, value):
-        return super(IN, self).__init__("in", property_name, value)
+        return super(IN, self).__init__("in", property_name,
+                [x for x in value])
 
 
 class StartsWith(RE):
