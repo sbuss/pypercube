@@ -24,7 +24,7 @@ class Cube(object):
 
     ### Data access methods
     def _handle_response(self, response, obj):
-        if response.ok and response.json:
+        if response.ok and response.json is not None:
             return [obj.from_json(record) for record in response.json]
         elif not response.ok:
             raise InvalidQueryError({
