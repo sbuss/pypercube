@@ -4,33 +4,27 @@ Use it like this:
 from datetime import datetime, timedelta
 
 from pypercube.cube import Cube
-from pypercube.event import EventExpression
-from pypercube.filters import StartsWith, EQ
-from pypercube.metrics import Sum
-from pypercube.query import Query
+from pypercube.cube import Query
+from pypercube.expression import EventExpression
+from pypercube.expression import Sum
 
 # Build the Cube connection configuration
 c = Cube('cube.mydomain.com')
-# Set up some filters
-f = [StartsWith('path', '/wetlab'), EQ('status', 200)]
-# Query for an Event
-e = EventExpression("timing", ["path", "elapsed_ms"], filters=f)
-# f and e are quivalent to cube query syntax:
-#   timing(path, elapsed_ms).re('path', '^/wetlab').eq('status', 200)
+# Query for an Event and filter it
+e = EventExpression("timing", ["path", "elapsed_ms"]).startswith('path', '/api/').eq('status', 200)
+# This is equivalent to the Cube query
+#   timing(path, elapsed_ms).re('path', '^/api/').eq('status', 200)
 # Set up some time boundaries
-start = datetime.utcnow() - timedelta(days=5)
+stop = datetime.utcnow()
+start = stop - timedelta(days=1)
 step = Query.STEP_1_hour
 # Fetch the matching events, returns Event objects
-events = c.get(e, start=start, step=step)
+events = c.get_event(e, start=start, stop=stop, limit=10)
 
-# Find the average response time for all successful requests:
-f = [EQ('status', 200)]
-# Get the elapsed time of requests
-e_time = EventExpression("timing", "elapsed_ms", filters=f)
+# Get the elapsed time of successful requests
+e_time = EventExpression("timing", "elapsed_ms").eq('status', 200)
 # Get the number of requests
-e_num = EventExpression("timing", filters=f)
-m_time_sum = Sum(e_time)
-m_request_count = Sum(e_num)
+e_num = EventExpression("timing").eq('status', 200)
 # Get a computed metric, returns Metric objects
-metrics = c.get(m_time_sum / m_request_count, start=start, step=step)
+metrics = c.get_metric(Sum(e_time) / Sum(e_num), start=start, stop=stop, step=step)
 ```
