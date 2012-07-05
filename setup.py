@@ -17,7 +17,6 @@ setup(
             "Intended Audience :: Developers",
             "Operating System :: OS Independent",
             "Programming Language :: Python :: 2.7",
-            "Topic :: System :: Logging",
         ],
         packages=[
             'pypercube',
