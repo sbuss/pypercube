@@ -221,6 +221,43 @@ class MetricExpression(object):
         return CompoundMetricExpression(self).__truediv__(right)
 
 
+class Sum(MetricExpression):
+    """A "sum" metric."""
+    def __init__(self, event):
+        """
+        >>> e = EventExpression('request')
+        >>> m1 = MetricExpression('sum', e)
+        >>> m2 = Sum(e)
+        >>> m1 == m2
+        True
+        """
+        super(Sum, self).__init__("sum", event)
+
+
+class Min(MetricExpression):
+    """A "min" metric."""
+    def __init__(self, event):
+        super(Min, self).__init__("min", event)
+
+
+class Max(MetricExpression):
+    """A "max" metric."""
+    def __init__(self, event):
+        super(Max, self).__init__("max", event)
+
+
+class Median(MetricExpression):
+    """A "median" metric."""
+    def __init__(self, event):
+        super(Median, self).__init__("median", event)
+
+
+class Distinct(MetricExpression):
+    """A "distinct" metric."""
+    def __init__(self, event):
+        super(Distinct, self).__init__("distinct", event)
+
+
 class EventExpression(object):
     def __init__(self, event_type, event_properties=None):
         """Create an Event expression.
