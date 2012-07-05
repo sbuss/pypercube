@@ -49,15 +49,58 @@ class CompoundMetricExpression(object):
         return response
 
     def __add__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> print(m + m)
+        (sum(request) + sum(request))
+        >>> print(m + m + m)
+        ((sum(request) + sum(request)) + sum(request))
+        >>> print((m + m) + (m + m))
+        ((sum(request) + sum(request)) + (sum(request) + sum(request)))
+        """
         return CompoundMetricExpression(self, "+", right)
 
     def __sub__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> print(m - m)
+        (sum(request) - sum(request))
+        >>> print(m - m - m)
+        ((sum(request) - sum(request)) - sum(request))
+        >>> print((m - m) + (m - m))
+        ((sum(request) - sum(request)) + (sum(request) - sum(request)))
+        """
         return CompoundMetricExpression(self, "-", right)
 
     def __mul__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> print(m * m)
+        (sum(request) * sum(request))
+        >>> print(m - m * m)
+        (sum(request) - (sum(request) * sum(request)))
+        >>> print((m - m) * (m + m))
+        ((sum(request) - sum(request)) * (sum(request) + sum(request)))
+        """
         return CompoundMetricExpression(self, "*", right)
 
     def __div__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> print(m / m)
+        (sum(request) / sum(request))
+        >>> print(m / m * m)
+        ((sum(request) / sum(request)) * sum(request))
+        >>> print((m / m) / (m + m))
+        ((sum(request) / sum(request)) / (sum(request) + sum(request)))
+        >>> print(m / m * m + m - m)  # doctest:+NORMALIZE_WHITESPACE
+        ((((sum(request) / sum(request)) * sum(request)) + sum(request)) -
+                sum(request))
+        """
         return CompoundMetricExpression(self, "/", right)
 
     def __truediv__(self, right):
@@ -109,18 +152,72 @@ class MetricExpression(object):
                 value=self.event_expression)
 
     def __add__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> isinstance(m, MetricExpression)
+        True
+        >>> isinstance(m, CompoundMetricExpression)
+        False
+        >>> isinstance(m + m, CompoundMetricExpression)
+        True
+        """
         return CompoundMetricExpression(self) + right
 
     def __sub__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> isinstance(m, MetricExpression)
+        True
+        >>> isinstance(m, CompoundMetricExpression)
+        False
+        >>> isinstance(m - m, CompoundMetricExpression)
+        True
+        """
         return CompoundMetricExpression(self) - right
 
     def __mul__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> isinstance(m, MetricExpression)
+        True
+        >>> isinstance(m, CompoundMetricExpression)
+        False
+        >>> isinstance(m * m, CompoundMetricExpression)
+        True
+        """
         return CompoundMetricExpression(self) * right
 
     def __div__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> isinstance(m, MetricExpression)
+        True
+        >>> isinstance(m, CompoundMetricExpression)
+        False
+        >>> isinstance(m / m, CompoundMetricExpression)
+        True
+        >>> isinstance(m.__div__(m), CompoundMetricExpression)
+        True
+        """
         return CompoundMetricExpression(self).__div__(right)
 
     def __truediv__(self, right):
+        """
+        >>> e = EventExpression('request')
+        >>> m = MetricExpression('sum', e)
+        >>> isinstance(m, MetricExpression)
+        True
+        >>> isinstance(m, CompoundMetricExpression)
+        False
+        >>> isinstance(m / m, CompoundMetricExpression)
+        True
+        >>> isinstance(m.__truediv__(m), CompoundMetricExpression)
+        True
+        """
         return CompoundMetricExpression(self).__truediv__(right)
 
 
