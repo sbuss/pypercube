@@ -51,10 +51,10 @@ class Metric(object):
         d = dict()
         d[self.TIME_FIELD_NAME] = self.time.isoformat()
         d[self.VALUE_FIELD_NAME] = self.value
-        return json.dumps(d)
+        return d
 
     def __str__(self):
-        return self.to_json()
+        return json.dumps(self.to_json())
 
 
 class InvalidMetricError(Exception):
