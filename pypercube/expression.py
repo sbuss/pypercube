@@ -451,5 +451,8 @@ class EventExpression(object):
             expression += "".join(str(filter) for filter in filters)
         return expression
 
+    def __repr__(self):
+        return "<EventExpression: {value}>".format(value=self)
+
     def __str__(self):
         return self.get_expression()
