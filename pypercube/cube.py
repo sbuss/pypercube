@@ -2,6 +2,7 @@ import requests
 
 from pypercube.event import Event
 from pypercube.metric import Metric
+from pypercube.time_utils import STEP_CHOICES
 
 
 class Cube(object):
@@ -47,19 +48,6 @@ class Cube(object):
 
 
 class Query(object):
-    STEP_10_sec = long(1e4)
-    STEP_1_min = long(6e4)
-    STEP_5_min = long(3e5)
-    STEP_1_hour = long(36e5)
-    STEP_1_day = long(864e5)
-
-    STEP_CHOICES = (
-            (STEP_10_sec, "10 seconds"),
-            (STEP_1_min, "1 minute"),
-            (STEP_5_min, "5 minutes"),
-            (STEP_1_hour, "1 hour"),
-            (STEP_1_day, "1 day"))
-
     def __init__(self, base_url, path, start=None, stop=None, step=None,
             limit=None):
         self.base_url = base_url
@@ -80,7 +68,7 @@ class Query(object):
         if stop:
             params['stop'] = cls._format_time(stop)
         if step:
-            if step in (q[0] for q in cls.STEP_CHOICES):
+            if step in (q[0] for q in STEP_CHOICES):
                 params['step'] = "{step}".format(step=step)
             else:
                 raise ValueError("{step} is not a valid step. See "
