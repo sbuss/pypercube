@@ -63,6 +63,9 @@ class Event(object):
         d[self.DATA_FIELD_NAME] = self.data
         return d
 
+    def __repr__(self):
+        return "<Event: {value}>".format(value=self)
+
     def __str__(self):
         return json.dumps(self.to_json())
 
