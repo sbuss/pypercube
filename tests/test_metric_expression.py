@@ -12,7 +12,7 @@ from tests import MockResponse
 from tests import mock_get
 
 
-class TestEventExpressions(unittest.TestCase):
+class TestMetricExpressions(unittest.TestCase):
     def setUp(self):
         self.c = Cube('unittest')
 
