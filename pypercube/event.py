@@ -61,10 +61,10 @@ class Event(object):
         d[self.TYPE_FIELD_NAME] = self.type
         d[self.TIME_FIELD_NAME] = self.time.isoformat()
         d[self.DATA_FIELD_NAME] = self.data
-        return json.dumps(d)
+        return d
 
     def __str__(self):
-        return self.to_json()
+        return json.dumps(self.to_json())
 
 
 class InvalidEventError(Exception):
