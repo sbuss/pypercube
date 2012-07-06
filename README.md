@@ -1,3 +1,17 @@
+Pypercube
+=========
+
+Pypercube is a Python library for interacting with the
+[Cube](https://github.com/square/cube) REST API. Currently you can only GET
+Event and Metric data.
+
+Installation
+------------
+pip install pypercube
+
+Usage
+-----
+
 Use it like this:
 
 ```python
