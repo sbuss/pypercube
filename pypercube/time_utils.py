@@ -19,12 +19,16 @@ def now():
     return datetime.utcnow()
 
 
-def yesterday():
-    return now() - timedelta(days=1)
+def yesterday(start=None):
+    if start is None:
+        start = now()
+    return start - timedelta(days=1)
 
 
-def last_week():
-    return now() - timedelta(days=7)
+def last_week(start=None):
+    if start is None:
+        start = now()
+    return start - timedelta(days=7)
 
 
 def start_of_month(timestamp=None):
