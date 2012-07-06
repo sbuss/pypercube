@@ -384,7 +384,7 @@ class EventExpression(object):
             if isinstance(event_property, types.StringTypes):
                 p = event_property
             else:
-                p = ",".join(str(x) for x in event_property)
+                p = ", ".join(str(x) for x in event_property)
 
             expression += "({properties})".format(properties=p)
 
