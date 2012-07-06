@@ -53,6 +53,9 @@ class Metric(object):
         d[self.VALUE_FIELD_NAME] = self.value
         return d
 
+    def __repr__(self):
+        return "<Metric: {value}>".format(value=self)
+
     def __str__(self):
         return json.dumps(self.to_json())
 
