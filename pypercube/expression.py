@@ -115,19 +115,6 @@ class MetricExpression(object):
         >>> e = EventExpression('request', 'elapsed_ms')
         >>> print(MetricExpression('sum', e))
         sum(request(elapsed_ms))
-        >>> err = EventExpression('request', ['elapsed_ms', 'path'])
-        >>> MetricExpression('sum', err)
-        Traceback (most recent call last):
-          File "<stdin>", line 1, in ?
-        ValueError: Events for Metrics may only select a single event property
-        >>> e = EventExpression('request', 'elapsed_ms').eq(
-        ...     'path', '/')
-        >>> print(MetricExpression('sum', e))
-        sum(request(elapsed_ms).eq(path, "/"))
-        >>> e = EventExpression('request', 'elapsed_ms').eq(
-        ...     'path', '/').gt('elapsed_ms', 500)
-        >>> print(MetricExpression('sum', e))
-        sum(request(elapsed_ms).eq(path, "/").gt(elapsed_ms, 500))
         """
         if len(event_expression.event_properties) > 1:
             raise ValueError("Events for Metrics may only select a single "
@@ -226,21 +213,6 @@ class EventExpression(object):
         self.filters = []
 
     def copy(self):
-        """Copy an EventExpression
-
-        >>> e1 = EventExpression('request', ['path', 'elapsed_ms'])
-        >>> e2 = e1.copy()
-        >>> e1 == e2
-        True
-        >>> e1 = e1.eq('path', '/')
-        >>> e3 = e1.copy()
-        >>> e1 == e2
-        False
-        >>> e1 == e3
-        True
-        >>> e2 == e3
-        False
-        """
         c = EventExpression(self.event_type, self.event_properties[:])
         c.filters = self.filters[:]
         return c
@@ -254,31 +226,6 @@ class EventExpression(object):
         >>> e1 = EventExpression('request', 'path')
         >>> e1 == e2
         False
-        >>> e2 = EventExpression('request', 'path')
-        >>> e1 == e2
-        True
-        >>> e1 = EventExpression('request', ['path', 'elapsed_ms'])
-        >>> e1 == e2
-        False
-        >>> e2 = EventExpression('request', ['path', 'elapsed_ms'])
-        >>> e1 == e2
-        True
-        >>> e1 = EventExpression('request', ['path', 'elapsed_ms']).eq(
-        ...     'path', '/')
-        >>> e1 == e2
-        False
-        >>> e2 = EventExpression('request', ['path', 'elapsed_ms']).eq(
-        ...     'path', '/')
-        >>> e1 == e2
-        True
-        >>> e1 = EventExpression('request', ['path', 'elapsed_ms']).eq(
-        ...     'path', '/').gt('elapsed_ms', 500)
-        >>> e1 == e2
-        False
-        >>> e2 = EventExpression('request', ['path', 'elapsed_ms']).eq(
-        ...     'path', '/').gt('elapsed_ms', 500)
-        >>> e1 == e2
-        True
         """
         return self.event_type == other.event_type and \
                 len(self.event_properties) == len(other.event_properties) and \
@@ -293,12 +240,6 @@ class EventExpression(object):
 
         >>> request_time = EventExpression('request', 'elapsed_ms')
         >>> filtered = request_time.eq('path', '/')
-        >>> request_time == filtered
-        False
-        >>> len(request_time.filters)
-        0
-        >>> len(filtered.filters)
-        1
         >>> print(filtered)
         request(elapsed_ms).eq(path, "/")
         """
