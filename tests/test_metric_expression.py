@@ -96,3 +96,11 @@ class TestMetricExpressions(unittest.TestCase):
                 "Events for Metrics may only select a single event property",
                 Sum, EventExpression('request', ['path', 'user_id']))
         self.assertRaises(TypeError, Sum)
+
+    def test_filters(self):
+        e1 = EventExpression('request', 'elapsed_ms').eq('path', '/')
+        e2 = e1.gt('elapsed_ms', 500)
+        self.assertEqual("%s" % Sum(e1),
+                "sum(request(elapsed_ms).eq(path, \"/\"))")
+        self.assertEqual("%s" % Sum(e2),
+                "sum(request(elapsed_ms).eq(path, \"/\").gt(elapsed_ms, 500))")

@@ -75,3 +75,11 @@ class TestCompoundMetricExpressions(unittest.TestCase):
         self.assertTrue(isinstance(m1.__div__(m2), CompoundMetricExpression))
         self.assertTrue(isinstance(
             m1.__truediv__(m2), CompoundMetricExpression))
+
+    def test_filters(self):
+        e1 = EventExpression('request', 'elapsed_ms').eq('path', '/')
+        e2 = e1.gt('elapsed_ms', 500)
+        self.assertEqual("%s" % (Sum(e1) - Min(e2)),
+                "(sum(request(elapsed_ms).eq(path, \"/\")) - "\
+                "min(request(elapsed_ms).eq(path, \"/\").gt("\
+                    "elapsed_ms, 500)))")
