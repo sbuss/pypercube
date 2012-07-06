@@ -2,11 +2,6 @@ from datetime import datetime
 import json
 import unittest
 
-# Path hack.
-import sys
-import os
-sys.path.insert(0, os.path.abspath('..'))
-
 from pypercube.cube import Cube
 from pypercube.cube import Query
 from pypercube.event import Event
@@ -42,7 +37,3 @@ class TestEventExpressions(unittest.TestCase):
         self.assertEqual(len(response), 1)
         self.assertTrue(isinstance(response[0], Event))
         self.assertEqual(response[0].time, timestamp)
-
-
-if __name__ == "__main__":
-    unittest.main()
