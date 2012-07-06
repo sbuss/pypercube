@@ -90,3 +90,9 @@ class TestMetricExpressions(unittest.TestCase):
 
         m2 = MetricExpression('min', e2)
         self.assertEqual(m1, m2)
+
+    def test_invalid_params(self):
+        self.assertRaisesRegexp(ValueError,
+                "Events for Metrics may only select a single event property",
+                Sum, EventExpression('request', ['path', 'user_id']))
+        self.assertRaises(TypeError, Sum)
