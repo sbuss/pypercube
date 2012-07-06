@@ -41,8 +41,8 @@ def floor(start, resolution):
     """Floor a datetime by a resolution.
 
     >>> now = datetime(2012, 7, 6, 20, 33, 16, 573225)
-    >>> floor(now, STEP_1 HOUR)
-    datetime(2012, 7, 6, 20, 0, 0, 0)
+    >>> floor(now, STEP_1_HOUR)
+    datetime.datetime(2012, 7, 6, 20, 0)
     """
     if resolution == STEP_10_SEC:
         return datetime(start.year, start.month, start.day, start.hour,
