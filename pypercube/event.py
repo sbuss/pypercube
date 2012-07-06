@@ -61,10 +61,19 @@ class Event(object):
         d[self.TYPE_FIELD_NAME] = self.type
         d[self.TIME_FIELD_NAME] = self.time.isoformat()
         d[self.DATA_FIELD_NAME] = self.data
-        return json.dumps(d)
+        return d
+
+    def __repr__(self):
+        return "<Event: {value}>".format(value=self)
 
     def __str__(self):
-        return self.to_json()
+        return json.dumps(self.to_json())
+
+    def __eq__(self, other):
+        return self.type == other.type and \
+                self.time == other.time and \
+                len(self.data) == len(other.data) and \
+                self.data == other.data
 
 
 class InvalidEventError(Exception):

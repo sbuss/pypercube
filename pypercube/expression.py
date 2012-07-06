@@ -39,6 +39,14 @@ class CompoundMetricExpression(object):
         self.operator = operator
         self.metric2 = metric2
 
+    def __eq__(self, other):
+        """Note that this tests for *equality* not *equivalence*, eg
+        m + (m + m) != (m + m) + m, though the two expressions are equivalent.
+        """
+        return self.metric1 == other.metric1 and \
+                self.operator == other.operator and \
+                self.metric2 == other.metric2
+
     def __str__(self):
         response = "%s" % self.metric1
         if self.operator and self.metric2:
@@ -54,10 +62,6 @@ class CompoundMetricExpression(object):
         >>> m = MetricExpression('sum', e)
         >>> print(m + m)
         (sum(request) + sum(request))
-        >>> print(m + m + m)
-        ((sum(request) + sum(request)) + sum(request))
-        >>> print((m + m) + (m + m))
-        ((sum(request) + sum(request)) + (sum(request) + sum(request)))
         """
         return CompoundMetricExpression(self, "+", right)
 
@@ -67,10 +71,6 @@ class CompoundMetricExpression(object):
         >>> m = MetricExpression('sum', e)
         >>> print(m - m)
         (sum(request) - sum(request))
-        >>> print(m - m - m)
-        ((sum(request) - sum(request)) - sum(request))
-        >>> print((m - m) + (m - m))
-        ((sum(request) - sum(request)) + (sum(request) - sum(request)))
         """
         return CompoundMetricExpression(self, "-", right)
 
@@ -80,10 +80,6 @@ class CompoundMetricExpression(object):
         >>> m = MetricExpression('sum', e)
         >>> print(m * m)
         (sum(request) * sum(request))
-        >>> print(m - m * m)
-        (sum(request) - (sum(request) * sum(request)))
-        >>> print((m - m) * (m + m))
-        ((sum(request) - sum(request)) * (sum(request) + sum(request)))
         """
         return CompoundMetricExpression(self, "*", right)
 
@@ -93,13 +89,6 @@ class CompoundMetricExpression(object):
         >>> m = MetricExpression('sum', e)
         >>> print(m / m)
         (sum(request) / sum(request))
-        >>> print(m / m * m)
-        ((sum(request) / sum(request)) * sum(request))
-        >>> print((m / m) / (m + m))
-        ((sum(request) / sum(request)) / (sum(request) + sum(request)))
-        >>> print(m / m * m + m - m)  # doctest:+NORMALIZE_WHITESPACE
-        ((((sum(request) / sum(request)) * sum(request)) + sum(request)) -
-                sum(request))
         """
         return CompoundMetricExpression(self, "/", right)
 
@@ -126,19 +115,6 @@ class MetricExpression(object):
         >>> e = EventExpression('request', 'elapsed_ms')
         >>> print(MetricExpression('sum', e))
         sum(request(elapsed_ms))
-        >>> err = EventExpression('request', ['elapsed_ms', 'path'])
-        >>> MetricExpression('sum', err)
-        Traceback (most recent call last):
-          File "<stdin>", line 1, in ?
-        ValueError: Events for Metrics may only select a single event property
-        >>> e = EventExpression('request', 'elapsed_ms').eq(
-        ...     'path', '/')
-        >>> print(MetricExpression('sum', e))
-        sum(request(elapsed_ms).eq(path, "/"))
-        >>> e = EventExpression('request', 'elapsed_ms').eq(
-        ...     'path', '/').gt('elapsed_ms', 500)
-        >>> print(MetricExpression('sum', e))
-        sum(request(elapsed_ms).eq(path, "/").gt(elapsed_ms, 500))
         """
         if len(event_expression.event_properties) > 1:
             raise ValueError("Events for Metrics may only select a single "
@@ -152,92 +128,25 @@ class MetricExpression(object):
                 value=self.event_expression)
 
     def __add__(self, right):
-        """
-        >>> e = EventExpression('request')
-        >>> m = MetricExpression('sum', e)
-        >>> isinstance(m, MetricExpression)
-        True
-        >>> isinstance(m, CompoundMetricExpression)
-        False
-        >>> isinstance(m + m, CompoundMetricExpression)
-        True
-        """
         return CompoundMetricExpression(self) + right
 
     def __sub__(self, right):
-        """
-        >>> e = EventExpression('request')
-        >>> m = MetricExpression('sum', e)
-        >>> isinstance(m, MetricExpression)
-        True
-        >>> isinstance(m, CompoundMetricExpression)
-        False
-        >>> isinstance(m - m, CompoundMetricExpression)
-        True
-        """
         return CompoundMetricExpression(self) - right
 
     def __mul__(self, right):
-        """
-        >>> e = EventExpression('request')
-        >>> m = MetricExpression('sum', e)
-        >>> isinstance(m, MetricExpression)
-        True
-        >>> isinstance(m, CompoundMetricExpression)
-        False
-        >>> isinstance(m * m, CompoundMetricExpression)
-        True
-        """
         return CompoundMetricExpression(self) * right
 
     def __div__(self, right):
-        """
-        >>> e = EventExpression('request')
-        >>> m = MetricExpression('sum', e)
-        >>> isinstance(m, MetricExpression)
-        True
-        >>> isinstance(m, CompoundMetricExpression)
-        False
-        >>> isinstance(m / m, CompoundMetricExpression)
-        True
-        >>> isinstance(m.__div__(m), CompoundMetricExpression)
-        True
-        """
         return CompoundMetricExpression(self).__div__(right)
 
     def __truediv__(self, right):
-        """
-        >>> e = EventExpression('request')
-        >>> m = MetricExpression('sum', e)
-        >>> isinstance(m, MetricExpression)
-        True
-        >>> isinstance(m, CompoundMetricExpression)
-        False
-        >>> isinstance(m / m, CompoundMetricExpression)
-        True
-        >>> isinstance(m.__truediv__(m), CompoundMetricExpression)
-        True
-        """
         return CompoundMetricExpression(self).__truediv__(right)
 
     def __eq__(self, other):
         """
         >>> e1 = EventExpression('request')
-        >>> e2 = EventExpression('other')
         >>> m1 = MetricExpression('sum', e1)
         >>> m2 = MetricExpression('sum', e1)
-        >>> m1 == m2
-        True
-        >>> m2 = MetricExpression('sum', e2)
-        >>> m1 == m2
-        False
-        >>> m1 = MetricExpression('sum', e2)
-        >>> m1 == m2
-        True
-        >>> m1 = MetricExpression('min', e2)
-        >>> m1 == m2
-        False
-        >>> m2 = MetricExpression('min', e2)
         >>> m1 == m2
         True
         """
@@ -248,13 +157,6 @@ class MetricExpression(object):
 class Sum(MetricExpression):
     """A "sum" metric."""
     def __init__(self, event):
-        """
-        >>> e = EventExpression('request')
-        >>> m1 = MetricExpression('sum', e)
-        >>> m2 = Sum(e)
-        >>> m1 == m2
-        True
-        """
         super(Sum, self).__init__("sum", event)
 
 
@@ -311,21 +213,6 @@ class EventExpression(object):
         self.filters = []
 
     def copy(self):
-        """Copy an EventExpression
-
-        >>> e1 = EventExpression('request', ['path', 'elapsed_ms'])
-        >>> e2 = e1.copy()
-        >>> e1 == e2
-        True
-        >>> e1 = e1.eq('path', '/')
-        >>> e3 = e1.copy()
-        >>> e1 == e2
-        False
-        >>> e1 == e3
-        True
-        >>> e2 == e3
-        False
-        """
         c = EventExpression(self.event_type, self.event_properties[:])
         c.filters = self.filters[:]
         return c
@@ -339,31 +226,6 @@ class EventExpression(object):
         >>> e1 = EventExpression('request', 'path')
         >>> e1 == e2
         False
-        >>> e2 = EventExpression('request', 'path')
-        >>> e1 == e2
-        True
-        >>> e1 = EventExpression('request', ['path', 'elapsed_ms'])
-        >>> e1 == e2
-        False
-        >>> e2 = EventExpression('request', ['path', 'elapsed_ms'])
-        >>> e1 == e2
-        True
-        >>> e1 = EventExpression('request', ['path', 'elapsed_ms']).eq(
-        ...     'path', '/')
-        >>> e1 == e2
-        False
-        >>> e2 = EventExpression('request', ['path', 'elapsed_ms']).eq(
-        ...     'path', '/')
-        >>> e1 == e2
-        True
-        >>> e1 = EventExpression('request', ['path', 'elapsed_ms']).eq(
-        ...     'path', '/').gt('elapsed_ms', 500)
-        >>> e1 == e2
-        False
-        >>> e2 = EventExpression('request', ['path', 'elapsed_ms']).eq(
-        ...     'path', '/').gt('elapsed_ms', 500)
-        >>> e1 == e2
-        True
         """
         return self.event_type == other.event_type and \
                 len(self.event_properties) == len(other.event_properties) and \
@@ -378,12 +240,6 @@ class EventExpression(object):
 
         >>> request_time = EventExpression('request', 'elapsed_ms')
         >>> filtered = request_time.eq('path', '/')
-        >>> request_time == filtered
-        False
-        >>> len(request_time.filters)
-        0
-        >>> len(filtered.filters)
-        1
         >>> print(filtered)
         request(elapsed_ms).eq(path, "/")
         """
@@ -528,13 +384,16 @@ class EventExpression(object):
             if isinstance(event_property, types.StringTypes):
                 p = event_property
             else:
-                p = ",".join(str(x) for x in event_property)
+                p = ", ".join(str(x) for x in event_property)
 
             expression += "({properties})".format(properties=p)
 
         if filters:
             expression += "".join(str(filter) for filter in filters)
         return expression
+
+    def __repr__(self):
+        return "<EventExpression: {value}>".format(value=self)
 
     def __str__(self):
         return self.get_expression()

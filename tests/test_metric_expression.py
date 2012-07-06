@@ -1,53 +1,72 @@
-from datetime import datetime
-import json
 import unittest
 
-# Path hack.
-import sys
-import os
-sys.path.insert(0, os.path.abspath('..'))
-
 from pypercube.cube import Cube
-from pypercube.cube import Query
-from pypercube.metric import Metric
+from pypercube.expression import Distinct
 from pypercube.expression import EventExpression
+from pypercube.expression import Max
+from pypercube.expression import Median
+from pypercube.expression import MetricExpression
+from pypercube.expression import Min
 from pypercube.expression import Sum
 
-from tests import MockResponse
-from tests import mock_get
 
-
-class TestEventExpressions(unittest.TestCase):
+class TestMetricExpressions(unittest.TestCase):
     def setUp(self):
         self.c = Cube('unittest')
+        self.e = EventExpression('request')
 
-    def test_no_matching_metrics(self):
-        mock_response = MockResponse(ok=True, status_code='200',
-                content="[]", json=[])
-        Query.get = mock_get(mock_response)
+    def _test_op(self, op_str, op):
+        m1 = MetricExpression(op_str, self.e)
+        m2 = op(self.e)
+        self.assertEqual(m1, m2)
+        s = "{op}(request)".format(op=op_str)
+        self.assertEqual("%s" % m1, s)
+        self.assertEqual("%s" % m2, s)
 
-        event = EventExpression('test')
-        metric = Sum(event)
-        response = self.c.get_metric(metric, limit=10)
-        self.assertEqual(len(response), 0)
+    def test_sum(self):
+        self._test_op("sum", Sum)
 
-    def test_single_matching_metric(self):
-        timestamp = datetime.utcnow()
-        expected_content = '[{"time":"' + timestamp.isoformat() + '", '\
-                '"value":100}]'
+    def test_min(self):
+        self._test_op("min", Min)
 
-        mock_response = MockResponse(ok=True, status_code='200',
-                content=expected_content, json=json.loads(expected_content))
-        Query.get = mock_get(mock_response)
+    def test_max(self):
+        self._test_op("max", Max)
 
-        event = EventExpression('test')
-        metric = Sum(event)
-        response = self.c.get_metric(metric, limit=1)
-        self.assertEqual(len(response), 1)
-        self.assertTrue(isinstance(response[0], Metric))
-        self.assertEqual(response[0].time, timestamp)
-        self.assertEqual(response[0].value, 100)
+    def test_median(self):
+        self._test_op("median", Median)
 
+    def test_distinct(self):
+        self._test_op("distinct", Distinct)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_equality(self):
+        e1 = EventExpression('request')
+        m1 = MetricExpression('sum', e1)
+        m2 = MetricExpression('sum', e1)
+        self.assertEqual(m1, m2)
+
+        e2 = EventExpression('other')
+        m2 = MetricExpression('sum', e2)
+        self.assertNotEqual(m1, m2)
+
+        m1 = MetricExpression('sum', e2)
+        self.assertEqual(m1, m2)
+
+        m1 = MetricExpression('min', e2)
+        self.assertNotEqual(m1, m2)
+
+        m2 = MetricExpression('min', e2)
+        self.assertEqual(m1, m2)
+
+    def test_invalid_params(self):
+        self.assertRaisesRegexp(ValueError,
+                "Events for Metrics may only select a single event property",
+                Sum, EventExpression('request', ['path', 'user_id']))
+        self.assertRaises(TypeError, Sum)
+
+    def test_filters(self):
+        e1 = EventExpression('request', 'elapsed_ms').eq('path', '/')
+        e2 = e1.gt('elapsed_ms', 500)
+        self.assertEqual("%s" % Sum(e1),
+                "sum(request(elapsed_ms).eq(path, \"/\"))")
+        self.assertEqual("%s" % Sum(e2),
+                "sum(request(elapsed_ms).eq(path, \"/\").gt(elapsed_ms, 500))")

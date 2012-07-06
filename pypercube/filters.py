@@ -17,6 +17,11 @@ class Filter(object):
         self.property_name = property_name
         self.value = value
 
+    def __repr__(self):
+        return "<{name}: {value}>".format(
+                name=self.__class__.__name__,
+                value=self)
+
     def __str__(self):
         return ".{type}({property}, {value})".format(
                 type=self.type,
