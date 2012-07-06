@@ -14,7 +14,7 @@ e = EventExpression("timing", ["path", "elapsed_ms"]).startswith('path', '/api/'
 #   timing(path, elapsed_ms).re('path', '^/api/').eq('status', 200)
 # Set up some time boundaries
 stop = time_utils.now()
-start = time_utils.yesterday()
+start = time_utils.yesterday(stop)
 step = time_utils.STEP_1_HOUR
 # Fetch the matching events, returns Event objects
 events = c.get_event(e, start=start, stop=stop, limit=10)
