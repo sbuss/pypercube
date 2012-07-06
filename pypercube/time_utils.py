@@ -35,3 +35,29 @@ def start_of_month(timestamp=None):
     if not timestamp:
         timestamp = now()
     return datetime(year=timestamp.year, month=timestamp.month, day=1)
+
+
+def floor(start, resolution):
+    """Floor a datetime by a resolution.
+
+    >>> now = datetime(2012, 7, 6, 20, 33, 16, 573225)
+    >>> floor(now, STEP_1 HOUR)
+    datetime(2012, 7, 6, 20, 0, 0, 0)
+    """
+    if resolution == STEP_10_SEC:
+        return datetime(start.year, start.month, start.day, start.hour,
+                start.minute, start.second - (start.second % 10))
+    elif resolution == STEP_1_MIN:
+        return datetime(start.year, start.month, start.day, start.hour,
+                start.minute)
+    elif resolution == STEP_5_MIN:
+        return datetime(start.year, start.month, start.day, start.hour,
+                start.minute - (start.minute % 5))
+    elif resolution == STEP_1_HOUR:
+        return datetime(start.year, start.month, start.day, start.hour)
+    elif resolution == STEP_1_DAY:
+        return datetime(start.year, start.month, start.day)
+
+    raise ValueError("{resolution} is not a valid resolution. Valid choices "
+            "are {choices}".format(
+                resolution=resolution, choices=STEP_CHOICES))
