@@ -39,6 +39,14 @@ class CompoundMetricExpression(object):
         self.operator = operator
         self.metric2 = metric2
 
+    def __eq__(self, other):
+        """Note that this tests for *equality* not *equivalence*, eg
+        m + (m + m) != (m + m) + m, though the two expressions are equivalent.
+        """
+        return self.metric1 == other.metric1 and \
+                self.operator == other.operator and \
+                self.metric2 == other.metric2
+
     def __str__(self):
         response = "%s" % self.metric1
         if self.operator and self.metric2:
