@@ -69,6 +69,12 @@ class Event(object):
     def __str__(self):
         return json.dumps(self.to_json())
 
+    def __eq__(self, other):
+        return self.type == other.type and \
+                self.time == other.time and \
+                len(self.data) == len(other.data) and \
+                self.data == other.data
+
 
 class InvalidEventError(Exception):
     pass
