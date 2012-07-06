@@ -59,6 +59,10 @@ class Metric(object):
     def __str__(self):
         return json.dumps(self.to_json())
 
+    def __eq__(self, other):
+        return self.time == other.time and \
+                self.value == other.value
+
 
 class InvalidMetricError(Exception):
     pass
