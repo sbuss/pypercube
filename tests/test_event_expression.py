@@ -125,3 +125,17 @@ class TestEventExpressions(unittest.TestCase):
 
         f = e.in_array('foo', 'bar')
         self.assertEqual("%s" % f, 'test.in(foo, ["b", "a", "r"])')
+
+    def test_filter_chaining(self):
+        e = EventExpression('test')
+        e = e.eq('bar', 'baz')
+        self.assertTrue(isinstance(e, EventExpression))
+        self.assertEqual(len(e.filters), 1)
+        e = e.lt('fizz', 'bang')
+        self.assertTrue(isinstance(e, EventExpression))
+        self.assertEqual(len(e.filters), 2)
+        e = e.ge('foo', 4)
+        self.assertTrue(isinstance(e, EventExpression))
+        self.assertEqual(len(e.filters), 3)
+        self.assertEqual("%s" % e,
+                'test.eq(bar, "baz").lt(fizz, "bang").ge(foo, 4)')
