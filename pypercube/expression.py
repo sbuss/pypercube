@@ -220,6 +220,30 @@ class MetricExpression(object):
         """
         return CompoundMetricExpression(self).__truediv__(right)
 
+    def __eq__(self, other):
+        """
+        >>> e1 = EventExpression('request')
+        >>> e2 = EventExpression('other')
+        >>> m1 = MetricExpression('sum', e1)
+        >>> m2 = MetricExpression('sum', e1)
+        >>> m1 == m2
+        True
+        >>> m2 = MetricExpression('sum', e2)
+        >>> m1 == m2
+        False
+        >>> m1 = MetricExpression('sum', e2)
+        >>> m1 == m2
+        True
+        >>> m1 = MetricExpression('min', e2)
+        >>> m1 == m2
+        False
+        >>> m2 = MetricExpression('min', e2)
+        >>> m1 == m2
+        True
+        """
+        return self.metric_type == other.metric_type and \
+                self.event_expression == other.event_expression
+
 
 class Sum(MetricExpression):
     """A "sum" metric."""
