@@ -62,10 +62,6 @@ class CompoundMetricExpression(object):
         >>> m = MetricExpression('sum', e)
         >>> print(m + m)
         (sum(request) + sum(request))
-        >>> print(m + m + m)
-        ((sum(request) + sum(request)) + sum(request))
-        >>> print((m + m) + (m + m))
-        ((sum(request) + sum(request)) + (sum(request) + sum(request)))
         """
         return CompoundMetricExpression(self, "+", right)
 
@@ -75,10 +71,6 @@ class CompoundMetricExpression(object):
         >>> m = MetricExpression('sum', e)
         >>> print(m - m)
         (sum(request) - sum(request))
-        >>> print(m - m - m)
-        ((sum(request) - sum(request)) - sum(request))
-        >>> print((m - m) + (m - m))
-        ((sum(request) - sum(request)) + (sum(request) - sum(request)))
         """
         return CompoundMetricExpression(self, "-", right)
 
@@ -88,10 +80,6 @@ class CompoundMetricExpression(object):
         >>> m = MetricExpression('sum', e)
         >>> print(m * m)
         (sum(request) * sum(request))
-        >>> print(m - m * m)
-        (sum(request) - (sum(request) * sum(request)))
-        >>> print((m - m) * (m + m))
-        ((sum(request) - sum(request)) * (sum(request) + sum(request)))
         """
         return CompoundMetricExpression(self, "*", right)
 
@@ -101,13 +89,6 @@ class CompoundMetricExpression(object):
         >>> m = MetricExpression('sum', e)
         >>> print(m / m)
         (sum(request) / sum(request))
-        >>> print(m / m * m)
-        ((sum(request) / sum(request)) * sum(request))
-        >>> print((m / m) / (m + m))
-        ((sum(request) / sum(request)) / (sum(request) + sum(request)))
-        >>> print(m / m * m + m - m)  # doctest:+NORMALIZE_WHITESPACE
-        ((((sum(request) / sum(request)) * sum(request)) + sum(request)) -
-                sum(request))
         """
         return CompoundMetricExpression(self, "/", right)
 
