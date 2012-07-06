@@ -4,9 +4,14 @@ import unittest
 
 from pypercube.cube import Cube
 from pypercube.cube import Query
-from pypercube.metric import Metric
+from pypercube.expression import Distinct
 from pypercube.expression import EventExpression
+from pypercube.expression import Max
+from pypercube.expression import Median
+from pypercube.expression import MetricExpression
+from pypercube.expression import Min
 from pypercube.expression import Sum
+from pypercube.metric import Metric
 
 from tests import MockResponse
 from tests import mock_get
@@ -15,6 +20,7 @@ from tests import mock_get
 class TestMetricExpressions(unittest.TestCase):
     def setUp(self):
         self.c = Cube('unittest')
+        self.e = EventExpression('request')
 
     def test_no_matching_metrics(self):
         mock_response = MockResponse(ok=True, status_code='200',
@@ -43,4 +49,44 @@ class TestMetricExpressions(unittest.TestCase):
         self.assertEqual(response[0].time, timestamp)
         self.assertEqual(response[0].value, 100)
 
+    def _test_op(self, op_str, op):
+        m1 = MetricExpression(op_str, self.e)
+        m2 = op(self.e)
+        self.assertEqual(m1, m2)
+        s = "{op}(request)".format(op=op_str)
+        self.assertEqual("%s" % m1, s)
+        self.assertEqual("%s" % m2, s)
 
+    def test_sum(self):
+        self._test_op("sum", Sum)
+
+    def test_min(self):
+        self._test_op("min", Min)
+
+    def test_max(self):
+        self._test_op("max", Max)
+
+    def test_median(self):
+        self._test_op("median", Median)
+
+    def test_distinct(self):
+        self._test_op("distinct", Distinct)
+
+    def test_equality(self):
+        e1 = EventExpression('request')
+        m1 = MetricExpression('sum', e1)
+        m2 = MetricExpression('sum', e1)
+        self.assertEqual(m1, m2)
+
+        e2 = EventExpression('other')
+        m2 = MetricExpression('sum', e2)
+        self.assertNotEqual(m1, m2)
+
+        m1 = MetricExpression('sum', e2)
+        self.assertEqual(m1, m2)
+
+        m1 = MetricExpression('min', e2)
+        self.assertNotEqual(m1, m2)
+
+        m2 = MetricExpression('min', e2)
+        self.assertEqual(m1, m2)

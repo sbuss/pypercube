@@ -58,7 +58,6 @@ class TestCompoundMetricExpressions(unittest.TestCase):
                         "min(test(ing))) - max(test(ing)))")
 
     def test_types(self):
-        self.assertTrue(isinstance(self.sum, MetricExpression))
         self.assertTrue(isinstance(self.min, MetricExpression))
         self.assertTrue(isinstance(self.max, MetricExpression))
         self.assertTrue(isinstance(self.sum + self.sum,
@@ -67,3 +66,12 @@ class TestCompoundMetricExpressions(unittest.TestCase):
             CompoundMetricExpression))
         self.assertTrue(isinstance(self.max + self.min,
             CompoundMetricExpression))
+
+        m1 = self.sum
+        m2 = self.min
+        self.assertTrue(isinstance(m1 + m2, CompoundMetricExpression))
+        self.assertTrue(isinstance(m1 - m2, CompoundMetricExpression))
+        self.assertTrue(isinstance(m1 * m2, CompoundMetricExpression))
+        self.assertTrue(isinstance(m1.__div__(m2), CompoundMetricExpression))
+        self.assertTrue(isinstance(
+            m1.__truediv__(m2), CompoundMetricExpression))
